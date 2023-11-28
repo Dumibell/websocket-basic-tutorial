@@ -1,43 +1,23 @@
-/** 서버로의 연결 */
-const messgaeList = document.querySelector("ul");
-const nickForm = document.querySelector("#nick");
-const messageForm = document.querySelector("#message");
+const socket = io();
 
-const socket = new WebSocket(`ws://${window.location.host}`);
+//room 만들기
+const welcome = document.getElementById("welcome");
+const form = welcome.querySelector("form");
 
-const makeMessage = (type, payload) => {
-  const msg = { type, payload };
-  return JSON.stringify(msg);
+const backendDone = (msg) => {
+  console.log(`The backend says: ${msg}`);
 };
 
-const handleOpen = () => {
-  console.log("Connected to Server ✅");
-};
-
-socket.addEventListener("open", handleOpen);
-
-socket.addEventListener("message", (message) => {});
-
-socket.addEventListener("close", () => {
-  console.log("Disconnected to Server ❌");
-});
-
-const handleSubmit = (event) => {
+const handleRoomSubmit = (event) => {
   event.preventDefault();
-  const input = messageForm.querySelector("input");
-  socket.send(makeMessage("new_message", input.value));
-  const li = document.createElement("li");
-  li.innerText = `You: ${input.value}`;
-  messgaeList.append(li);
+  const input = form.querySelector("input");
+
+  //send 대신 emit을 씀.
+  // 1. 첫번째 인자 - 이벤트 이름
+  // 2. 두번째 인자부터~~  - 아무거나 쌉가능.JSON 객체를 그대로 보낼 수도 있고, 서버에서 실행시킬 함수를 저장할 수도 있음. (websocket을 사용할 때는 string만 전달할 수 있어서 object를 string으로 변환하는 과정이 필요햇삼)
+  // 3. 마지막 인자 - 끝날 때 실행되는 function
+  socket.emit("enter_room", { payload: input.value }, backendDone);
   input.value = "";
 };
 
-const handleNickSubmit = (event) => {
-  event.preventDefault();
-  const input = nickForm.querySelector("input");
-  socket.send(makeMessage("nickname", input.value));
-  input.value = "";
-};
-
-messageForm.addEventListener("submit", handleSubmit);
-nickForm.addEventListener("submit", handleNickSubmit);
+form.addEventListener("submit", handleRoomSubmit);
